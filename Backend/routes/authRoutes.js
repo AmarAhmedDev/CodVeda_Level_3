@@ -47,6 +47,15 @@ router.post('/signup', async (req, res) => {
             role
         });
 
+        // Emit live notification event
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('user_added', { 
+                message: `New user ${newUser.name} just joined!`,
+                user: newUser
+            });
+        }
+
         // Generate JWT
         const token = jwt.sign(
             { id: newUser._id, email: newUser.email, role: newUser.role },

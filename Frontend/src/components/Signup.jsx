@@ -1,43 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { UserPlus } from 'lucide-react';
+
+const SIGNUP_MUTATION = gql`
+  mutation Signup($name: String!, $email: String!, $password: String!) {
+    signup(name: $name, email: $email, password: $password) {
+      token
+      user {
+        id
+        name
+        email
+        role
+      }
+    }
+  }
+`;
 
 const Signup = ({ setAuthStatus }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const [signupMutation, { loading: isLoading }] = useMutation(SIGNUP_MUTATION, {
+    onCompleted: (data) => {
+      localStorage.setItem('token', data.signup.token);
+      localStorage.setItem('user', JSON.stringify(data.signup.user));
+      setAuthStatus(true);
+      navigate('/');
+    },
+    onError: (err) => {
+      setError(err.message || 'Failed to sign up');
+    }
+  });
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    try {
-      const authUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth/signup` : 'http://localhost:3000/auth/signup';
-      const response = await fetch(authUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to sign up');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setAuthStatus(true);
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    await signupMutation({ variables: { name, email, password } });
   };
 
   return (
@@ -103,3 +106,4 @@ const Signup = ({ setAuthStatus }) => {
 };
 
 export default Signup;
+

@@ -19,14 +19,17 @@
   },
   "homepage": "https://github.com/AmarAhmedDev/CodVeda_L1_T2#readme",
   "dependencies": {
+    "@apollo/server": "^4.13.0",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.0",
+    "graphql": "^16.13.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.6.1"
+    "mongoose": "^9.6.1",
+    "socket.io": "^4.8.3"
   }
 }

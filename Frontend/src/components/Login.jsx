@@ -1,42 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { LogIn } from 'lucide-react';
+
+const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      user {
+        id
+        name
+        email
+        role
+      }
+    }
+  }
+`;
 
 const Login = ({ setAuthStatus }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const [loginMutation, { loading: isLoading }] = useMutation(LOGIN_MUTATION, {
+    onCompleted: (data) => {
+      localStorage.setItem('token', data.login.token);
+      localStorage.setItem('user', JSON.stringify(data.login.user));
+      setAuthStatus(true);
+      navigate('/');
+    },
+    onError: (err) => {
+      setError(err.message || 'Failed to login');
+    }
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    try {
-      const authUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/auth/login` : 'http://localhost:3000/auth/login';
-      const response = await fetch(authUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to login');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setAuthStatus(true);
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    await loginMutation({ variables: { email, password } });
   };
 
   return (
@@ -91,3 +94,4 @@ const Login = ({ setAuthStatus }) => {
 };
 
 export default Login;
+

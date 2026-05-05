@@ -1,70 +1,90 @@
-# CodVeda Level 3 - Advanced MERN Full-Stack Application
+# Advanced MERN Full-Stack Application
 
-This repository represents the **Level 3** iteration of the CodVeda User Manager. It extends the full MERN stack (MongoDB, Express, React, Node) built in Level 2 by introducing production-grade performance optimizations, advanced security middlewares, and full deployment readiness.
+This repository represents the **Level 3** iteration of the CodVeda User Manager. It extends the MERN stack (MongoDB, Express, React, Node) built in Level 2 with production-grade features including **GraphQL API**, **WebSockets for Real-Time Communication**, and **Performance Optimizations**.
 
-## Advanced Features & Optimizations
+---
 
-- **Security Headers**: Integrated `helmet` to automatically secure Express apps by setting various HTTP headers.
-- **Payload Compression**: Integrated `compression` to gzip all JSON responses, significantly reducing bandwidth and improving load times.
-- **Brute Force Protection**: Implemented `express-rate-limit` on the Authentication routes to strictly limit repeated login/signup attempts from the same IP address.
-- **Dynamic Environments**: Replaced hardcoded `localhost` URLs with Vite Environment Variables (`import.meta.env.VITE_API_URL`) to allow seamless transitioning between local development and cloud production.
+## Features
+
+### Task 1: Performance & Security Optimizations
+- **Security Headers**: `helmet` for HTTP header hardening
+- **Payload Compression**: `compression` for gzip responses
+- **Rate Limiting**: `express-rate-limit` on auth routes to block brute-force attacks
+- **Dynamic Environments**: `VITE_API_URL` env vars for deployment readiness
+
+### Task 2: WebSockets for Real-Time Communication (Socket.io)
+- **Authenticated WebSockets**: Socket connections require JWT verification
+- **Live Dashboard Sync**: User additions/deletions broadcast to all connected clients
+- **Toast Notifications**: Real-time animated notifications in the bottom-right corner
+
+### Task 3: GraphQL API Development (Apollo Server + Client)
+- **Apollo Server v4**: Full GraphQL schema with `typeDefs` and `resolvers`
+- **Queries**: `users` (all), `user(id)` (single)
+- **Mutations**: `signup`, `login`, `createUser`, `updateUser`, `deleteUser`
+- **Authenticated Context**: JWT extracted from headers and injected into every resolver
+- **Apollo Client v4**: React frontend uses `useQuery` and `useMutation` hooks
+- **InMemoryCache**: Apollo's built-in caching optimizes repeated queries
 
 ## Technology Stack
 
-- **Frontend**: React (Vite), React Router, Lucide Icons, Vanilla CSS (Glassmorphism UI)
-- **Backend**: Node.js, Express.js, MongoDB (Mongoose ORM)
-- **Security & Performance**: JWT, bcryptjs, Helmet, Compression, Express-Rate-Limit
+- **Frontend**: React 19, Vite, Apollo Client, Socket.io-Client, React Router, Lucide Icons
+- **Backend**: Node.js, Express.js, Apollo Server, Socket.io, MongoDB (Mongoose)
+- **Security**: JWT, bcryptjs, Helmet, Compression, Rate Limiting
 
 ---
 
 ## Local Development Setup
 
-To run this application locally, refer to the `.env.example` files provided in both the `Frontend` and `Backend` directories.
+### Backend
+```bash
+cd Backend
+npm install
+cp .env.example .env   # Configure MONGO_URI, JWT_SECRET
+npm start
+# Server runs at http://localhost:3000/graphql
+```
 
-1. **Backend**:
-   ```bash
-   cd Backend
-   npm install
-   cp .env.example .env # Configure your MONGO_URI
-   npm run start
-   ```
+### Frontend
+```bash
+cd Frontend
+npm install
+cp .env.example .env   # Configure VITE_API_URL
+npm run dev
+# App runs at http://localhost:5173
+```
 
-2. **Frontend**:
-   ```bash
-   cd Frontend
-   npm install
-   cp .env.example .env # Configure VITE_API_URL
-   npm run dev
-   ```
+---
+
+## GraphQL Playground
+
+Once the backend is running, visit `http://localhost:3000/graphql` to open the Apollo Sandbox and test queries:
+
+```graphql
+# Example: Login
+mutation {
+  login(email: "admin@test.com", password: "password123") {
+    token
+    user { id name email role }
+  }
+}
+
+# Example: Fetch all users (requires Authorization header)
+query {
+  users { id name email role createdAt }
+}
+```
 
 ---
 
 ## Deployment Guide
 
-This repository is optimized for modern cloud hosting. We recommend deploying the Backend to **Render** and the Frontend to **Vercel**.
+### Backend → Render
+1. Create a Web Service on [Render.com](https://render.com)
+2. Root Directory: `Backend`
+3. Build: `npm install` | Start: `npm start`
+4. Env Vars: `MONGO_URI`, `JWT_SECRET`
 
-### 1. Deploying the Backend (Render)
-
-1. Create a free account on [Render.com](https://render.com/).
-2. Click **New +** and select **Web Service**.
-3. Connect your GitHub repository (`CodVeda_Level_3`).
-4. Configure the service:
-   - **Root Directory**: `Backend`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-5. Click **Advanced** and add your Environment Variables:
-   - `MONGO_URI`: (Your MongoDB Atlas Connection String)
-   - `JWT_SECRET`: (A secure random string)
-6. Click **Create Web Service**. Once deployed, copy your new live URL (e.g., `https://codveda-backend.onrender.com`).
-
-### 2. Deploying the Frontend (Vercel)
-
-1. Create a free account on [Vercel.com](https://vercel.com/).
-2. Click **Add New** > **Project** and import the same GitHub repository.
-3. In the Configuration screen:
-   - **Root Directory**: Select the `Frontend` folder.
-   - The Build Command (`npm run build`) and Output Directory (`dist`) will be auto-detected by Vite.
-4. Open the **Environment Variables** section and add:
-   - Name: `VITE_API_URL`
-   - Value: `https://codveda-backend.onrender.com` (Paste the URL you got from Render).
-5. Click **Deploy**. Vercel will build and host your highly optimized React SPA!
+### Frontend → Vercel
+1. Import repo on [Vercel.com](https://vercel.com)
+2. Root Directory: `Frontend`
+3. Env Var: `VITE_API_URL` = your Render backend URL
